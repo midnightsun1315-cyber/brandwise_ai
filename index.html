@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrandWise AI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f5f8;
+      color: #222;
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 0 16px;
+    }
+    h1, h2 { color: #56b9cf; }
+    .box {
+    background: white;
+      border: 1px solid #ccd4df;
+   border-radius: 8px;
+      padding: 18px;
+      margin: 16px 0;
+    }
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      padding: 10px;
+      font: inherit;
+      box-sizing: border-box;
+    }
+    button {
+      background: #244b7a;
+      color: white;
+      border: 0;
+      padding: 10px 16px;
+      margin-top: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+   .issue { border-top: 1px solid #ddd; padding: 10px 0; }
+    .suggestion { color: #16794a; }
+    .note { color: #555; font-size: 14px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <h1>BrandWise AI</h1>
+  <p>A simple tool to check writing against brand rules.</p>
+  <div class="box">
+    <h2>Brand rules</h2>
+    <p>Write one rule on each line.</p>
+    <textarea id="brandRules">Do not say our service is free.
+The free plan includes 5 projects.
+Use the product name BrandWise AI.</textarea>
+    <button onclick="saveBrandRules()">Save brand rules</button>
+    <span id="rulesMessage" class="note"></span>
+  </div>
+
+  <div class="box">
+    <h2>Draft to check</h2>
+    <textarea id="draftText">Try our free tool today! Brand Wise helps your team organize 10 projects.</textarea>
+    <br>
+    <button onclick="checkDraft()">Check content</button>
+  </div>
+  <div class="box">
+    <h2>Results</h2>
+    <p id="summary">Click the button to check the draft.</p>
+    <div id="results"></div>
+    <h3>Suggested revised draft</h3>
+    <label for="revisedDraft">Edit the suggested version if needed:</label>
+    <textarea id="revisedDraft" placeholder="Your suggested version will appear here."></textarea>
+    <div class="actions">
+      <button onclick="copyRevisedDraft()">Copy revised draft</button>
+      <button onclick="saveReview()">Save review to database</button>
+      <button onclick="saveWork()">Save on this device</button>
+    </div>
+    <p id="saveMessage" class="note"></p>
+  </div>
+  <div class="box">
+    <h2>Saved reviews</h2>
+    <div id="reviewHistory">No reviews loaded yet.</div>
+  </div>
+  <script>
+  let latestIssues = [];
+
+ window.addEventListener("load", function () {
+    document.getElementById("draftText").value = localStorage.getItem("draftText") || document.getElementById("draftText").value;
+    document.getElementById("revisedDraft").value = localStorage.getItem("revisedDraft") || "";
+    loadBrandRules();
+    loadReviews();
+  });
+  async function loadBrandRules() {
+    try {
+      const response = await fetch("/rules");
+      const data = await response.json();
+      document.getElementById("brandRules").value = data.rules;
+    } catch (error) {
+      document.getElementById("rulesMessage").textContent = "Could not load saved rules.";
+    }
+  }
+ async function saveBrandRules() {
+    const rules = document.getElementById("brandRules").value;
+    const response = await fetch("/rules", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rules: rules })
+    });
+    document.getElementById("rulesMessage").textContent = response.ok
+      ? "Brand rules saved in the database."
+      : "Could not save the rules.";
+  }
+async function checkDraft() {
+    const rules = document.getElementById("brandRules").value;
+    const draft = document.getElementById("draftText").value;
+    const summary = document.getElementById("summary");
+    const results = document.getElementById("results");
+    summary.textContent = "Checking...";
+    results.innerHTML = "";
+    try {
+      const response = await fetch("/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rules: rules, draft: draft })
+      });
+      const answer = await response.json();
+      if (!response.ok) throw new Error("Backend error");
+      if (answer.error) throw new Error(answer.error);
+      latestIssues = answer.issues;
+
+      if (latestIssues.length === 0) {
+        summary.textContent = "No issues found by the current checks. Please review the text yourself too.";
+      } else {
+        summary.textContent = "Possible issues found: " + latestIssues.length;
+        for (const issue of latestIssues) {
+          const item = document.createElement("p");
+          item.className = "issue";
+          item.textContent = issue;
+          results.appendChild(item);
+        }
+      }
+      if (answer.notice) {
+        summary.textContent = answer.notice + " " + summary.textContent;
+      }
+      document.getElementById("revisedDraft").value = answer.revisedDraft;
+    } catch (error) {
+      summary.textContent = "Problem: " + error.message;
+    }
+  }
+
+  async function saveReview() {
+    const response = await fetch("/reviews", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        draft: document.getElementById("draftText").value,
+        revisedDraft: document.getElementById("revisedDraft").value,
+        issues: latestIssues
+      })
+    });
+    document.getElementById("saveMessage").textContent = response.ok
+      ? "Review saved in the database."
+      : "Could not save this review.";
+    if (response.ok) loadReviews();
+  }
+  async function loadReviews() {
+       try {
+      const response = await fetch("/reviews");
+      const data = await response.json();
+      const list = document.getElementById("reviewHistory");
+      list.innerHTML = "";
+      if (data.reviews.length === 0) {
+        list.textContent = "No saved reviews yet.";
+        return;
+      }
+  for (const review of data.reviews) {
+        const button = document.createElement("button");
+        button.textContent = "Open review " + review.id + " - " + review.createdAt;
+        button.onclick = function () {
+          document.getElementById("draftText").value = review.draft;
+          document.getElementById("revisedDraft").value = review.revisedDraft;
+          document.getElementById("summary").textContent = "Saved review " + review.id + ": " + review.issues.length + " possible issue(s).";
+        };
+        list.appendChild(button);
+      }
+    } catch (error) {
+      document.getElementById("reviewHistory").textContent = "Could not load reviews. Restart the Python server and refresh.";
+    }
+  }
+  function saveWork() {
+    localStorage.setItem("draftText", document.getElementById("draftText").value);
+    localStorage.setItem("revisedDraft", document.getElementById("revisedDraft").value);
+    document.getElementById("saveMessage").textContent = "Saved on this device.";
+  }
+  async function copyRevisedDraft() {
+    const revisedText = document.getElementById("revisedDraft").value;
+    if (!revisedText) {
+      document.getElementById("saveMessage").textContent = "Check a draft first.";
+      return;
+    }
+    await navigator.clipboard.writeText(revisedText);
+    document.getElementById("saveMessage").textContent = "Revised draft copied.";
+  }
+</script>
+</body>
+</html>
+
+

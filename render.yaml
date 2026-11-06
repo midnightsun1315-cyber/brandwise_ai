@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: brandwise-ai
+    runtime: python
+    plan: free
+    buildCommand: echo "No packages to install"
+    startCommand: python server.py
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
