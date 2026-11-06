@@ -5,42 +5,144 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BrandWise AI</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f2f5f8;
-      color: #222;
-      max-width: 900px;
-      margin: 30px auto;
-      padding: 0 16px;
-    }
-    h1, h2 { color: #56b9cf; }
-    .box {
-    background: white;
-      border: 1px solid #ccd4df;
-   border-radius: 8px;
-      padding: 18px;
-      margin: 16px 0;
-    }
-    textarea {
-      width: 100%;
-      min-height: 130px;
-      padding: 10px;
-      font: inherit;
-      box-sizing: border-box;
-    }
-    button {
-      background: #244b7a;
-      color: white;
-      border: 0;
-      padding: 10px 16px;
-      margin-top: 10px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-   .issue { border-top: 1px solid #ddd; padding: 10px 0; }
-    .suggestion { color: #16794a; }
-    .note { color: #555; font-size: 14px; }
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(135deg, #f4f3ff, #edf6ff, #f8faff);
+  color: #252943;
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 0 16px;
+}
+
+h1 {
+  color: #6555dc;
+  font-size: 34px;
+  font-weight: 750;
+}
+
+h2 {
+  color: #5264c9;
+}
+
+h3 {
+  color: #6555dc;
+}
+
+.box {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e3e0fa;
+  border-radius: 14px;
+  padding: 22px;
+  margin: 20px 0;
+  box-shadow: 0 5px 18px rgba(76, 70, 150, 0.07);
+  transition: 0.25s ease;
+}
+
+.box:hover {
+  box-shadow: 0 8px 24px rgba(76, 70, 150, 0.12);
+  transform: translateY(-2px);
+}
+
+textarea {
+  width: 100%;
+  min-height: 130px;
+  padding: 13px;
+  font: inherit;
+  border: 1.5px solid #d9d8f3;
+  border-radius: 10px;
+  background: #fcfcff;
+  outline: none;
+  resize: vertical;
+  transition: 0.25s;
+}
+
+textarea:focus {
+  border-color: #7667e8;
+  box-shadow: 0 0 0 3px rgba(118, 103, 232, 0.13);
+}
+
+button {
+  background: linear-gradient(135deg, #6555dc, #438fe8);
+  color: white;
+  border: none;
+  padding: 11px 19px;
+  margin-top: 10px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(101, 85, 220, 0.2);
+  transition: all 0.25s ease;
+}
+
+button:hover {
+  background: linear-gradient(135deg, #5141c7, #2875d5);
+  transform: translateY(-3px);
+  box-shadow: 0 7px 15px rgba(101, 85, 220, 0.3);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+.issue {
+  border-top: 1px solid #e8e6f5;
+  padding: 12px 8px;
+  color: #d15a5a;
+}
+
+.suggestion {
+  color: #16885d;
+  background: #edfaf3;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.note {
+  color: #777b96;
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+#summary {
+  background: #f0efff;
+  color: #5548bb;
+  padding: 12px;
+  border-radius: 9px;
+}
+
+#reviewHistory button {
+  background: linear-gradient(135deg, #278dba, #5264c9);
+}
+
+@media (max-width: 600px) {
+  body {
+    margin: 18px auto;
+  }
+
+  .box {
+    padding: 16px;
+  }
+
+  h1 {
+    font-size: 28px;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}
+
   </style>
 </head>
 <body>
